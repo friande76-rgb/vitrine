@@ -1,0 +1,82 @@
+@import "tailwindcss";
+
+:root {
+  --ground: #f3f5f0;
+  --surface: #ffffff;
+  --ink: #1b241d;
+  --muted: #5f6a61;
+  --line: #d9ded5;
+  --accent: #4e7a1f;
+  --accent-ink: #ffffff;
+  --pit: #8a5530;
+  --stage: #e6ebe0;
+  --danger: #b3261e;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ground: #121712;
+    --surface: #1a211b;
+    --ink: #eaf0e6;
+    --muted: #9da89e;
+    --line: #2c352d;
+    --accent: #9ccb5b;
+    --accent-ink: #132010;
+    --pit: #d29a6c;
+    --stage: #1f2820;
+    --danger: #ff8a80;
+  }
+}
+
+@theme inline {
+  --color-ground: var(--ground);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-pit: var(--pit);
+  --color-stage: var(--stage);
+  --color-danger: var(--danger);
+  --font-display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Instrument Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+
+html { background: var(--ground); color: var(--ink); }
+body { font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
+h1, h2, h3 { text-wrap: balance; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+@utility btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-[15px] font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer;
+}
+@utility btn-primary {
+  @apply btn bg-accent text-accent-ink hover:brightness-110;
+}
+@utility btn-ghost {
+  @apply btn border border-ink/80 text-ink hover:bg-ink/5;
+}
+@utility btn-danger {
+  @apply btn border border-danger/60 text-danger hover:bg-danger/10;
+}
+@utility field {
+  @apply grid gap-1.5 text-sm font-medium;
+}
+@utility input {
+  @apply w-full rounded-xl border border-line bg-surface px-3.5 py-2.5 text-base font-normal text-ink placeholder:text-muted/70;
+}
+@utility card {
+  @apply rounded-2xl border border-line bg-surface;
+}
+@utility label-mono {
+  @apply font-mono text-[11px] uppercase tracking-[0.08em] text-muted;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+@media print {
+  .no-print { display: none !important; }
+  html, body { background: #fff; color: #000; }
+}
