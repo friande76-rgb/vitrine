@@ -86,6 +86,23 @@ npm run dev
 
 > A realidade aumentada só funciona em `https://`. Em `localhost` vê-se o 3D, não a AR.
 
+## Revisão de segurança
+
+O que foi testado contra ataque real, e não só lido:
+
+| Verificação | Como |
+|---|---|
+| Um dono não lê, altera, publica nem apaga nada de outro | 19 asserções em `tests/integration/rls.sql`, contra um PostgreSQL verdadeiro |
+| Roubo de restaurante (mudar o dono) e inserir pratos em casa alheia | tentado no teste, recusado pela base |
+| Contadores de limites invisíveis e inalteráveis pelos clientes | linha semeada fora do RLS; o cliente continua a ver zero |
+| Funções `SECURITY DEFINER` fechadas | o teste tenta chamá-las como visitante e tem de levar erro |
+| Limites de tamanho na base (largura 2–150 cm, nomes até 120) | inserções inválidas recusadas |
+| Segredos fora do código do browser | `npm run check:bundle` percorre o que é servido ao cliente; validado com um teste negativo |
+| Dependências vulneráveis | `npm audit --omit=dev --audit-level=high` no CI |
+
+O que **não** está verificado: teste de penetração por terceiros, testes de ponta
+a ponta com contas reais, e comportamento sob carga.
+
 ## Verificações
 
 ```bash
@@ -93,6 +110,7 @@ npm run lint       # ESLint
 npm run typecheck  # TypeScript em modo estrito
 npm run test       # Vitest
 npm run build      # build de produção
+npm run check:bundle  # nenhum segredo no código enviado ao browser
 
 # políticas de segurança contra um PostgreSQL a sério
 createdb vitrine_test
