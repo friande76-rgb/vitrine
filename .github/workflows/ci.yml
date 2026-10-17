@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: vitrine_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run test
+      - run: npm run typecheck
+      - name: Testes de segurança da base de dados (RLS)
+        run: |
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f tests/integration/rls.sql
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/vitrine_test
+          PGPASSWORD: postgres
+      - run: npm run build
+        env:
+          # Valores falsos: o build só precisa que as variáveis existam.
+          NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci
+          SUPABASE_SECRET_KEY: sb_secret_ci
+          MESHY_API_KEY: msy_dummy_api_key_for_test_mode_12345678
+          NEXT_PUBLIC_SITE_URL: https://example.com
