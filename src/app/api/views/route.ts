@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { allow } from "@/lib/rate-limit";
+import { env } from "@/lib/env";
 
 export const runtime = "nodejs";
 
@@ -33,10 +34,7 @@ export async function POST(req: Request) {
   const { allowed } = await allow(clientKey(req), 120, 60);
   if (!allowed) return NextResponse.json({ error: "Demasiados pedidos" }, { status: 429 });
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? "",
-  );
+  const supabase = createClient(env.supabaseUrl(), env.supabaseKey());
   const { restaurant_id, dish_id, kind, table } = parsed.data;
   const { error } = await supabase.from("menu_views").insert({
     restaurant_id,
