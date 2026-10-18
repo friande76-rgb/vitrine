@@ -147,6 +147,12 @@ revoke all on function public.owns_restaurant(uuid) from public;
 grant execute on function public.owns_restaurant(uuid) to anon, authenticated, service_role;
 
 -- LIMITES DE TAMANHO (defesa em profundidade, além do Zod na aplicação) ----
+-- "drop ... if exists" primeiro para o ficheiro poder ser corrido outra vez
+-- sem rebentar: sem isto, a segunda passagem morre em "constraint already exists".
+alter table public.restaurants drop constraint if exists restaurants_name_len;
+alter table public.dishes drop constraint if exists dishes_name_len;
+alter table public.dishes drop constraint if exists dishes_desc_len;
+
 alter table public.restaurants
   add constraint restaurants_name_len check (char_length(name) between 2 and 120) not valid;
 alter table public.dishes
