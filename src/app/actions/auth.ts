@@ -27,10 +27,10 @@ export async function signUp(_: AuthState, form: FormData): Promise<AuthState> {
   const { data, error } = await supabase.auth.signUp({
     email: String(form.get("email") || "").trim(),
     password,
-    options: { emailRedirectTo: `${env.siteUrl()}/painel` },
+    options: { emailRedirectTo: `${env.siteUrl()}/auth/confirmar` },
   });
   if (error) return { error: error.message };
-  if (!data.session) return { info: "Conta criada. Confirma o email que te enviámos e depois entra." };
+  if (!data.session) return { info: "Conta criada. Abre o email que te enviámos e carrega no link — entras logo no painel." };
   redirect("/painel");
 }
 
