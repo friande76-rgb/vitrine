@@ -1,3 +1,5 @@
+import { env } from "@/lib/env";
+
 export function euros(cents: number, lang: "pt" | "fr" = "pt") {
   return new Intl.NumberFormat(lang === "fr" ? "fr-LU" : "pt-PT", {
     style: "currency",
@@ -6,7 +8,7 @@ export function euros(cents: number, lang: "pt" | "fr" = "pt") {
 }
 
 export function photoUrl(path: string) {
-  return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/photos/${path}`;
+  return `${env.supabaseUrl()}/storage/v1/object/public/photos/${path}`;
 }
 
 export function slugify(s: string) {
