@@ -68,6 +68,15 @@ que o dono mediu no prato, centrado e pousado em `y = 0`.
 - **Downloads com travões**: estado HTTP verificado, 80 MB de limite e tempo
   máximo, para um erro do fornecedor não chegar ao leitor de 3D como se fosse
   um modelo nem ocupar a memória do servidor.
+- **Cabeçalhos de segurança** em todas as páginas (`next.config.ts`): HSTS,
+  `nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy`, `Cross-Origin-Opener-Policy`
+  e um CSP que fecha a página ao que ela não precisa. A `Permissions-Policy`
+  abre a câmara (`camera=(self)`) e fecha microfone, localização e *topics* — sem
+  isso o browser nem chega a pedir autorização para a realidade aumentada.
+- **Sem domínios externos**: as letras são servidas pela própria aplicação
+  (`@fontsource`). Com o Google Fonts, o IP de cada cliente do restaurante saía
+  para a Google sem consentimento — um problema de RGPD para quem vende na UE.
+  O CSP não tem nenhum domínio de terceiros e há um teste que o impede de voltar.
 
 ## Pôr a correr
 
@@ -86,6 +95,20 @@ npm run dev
 
 > A realidade aumentada só funciona em `https://`. Em `localhost` vê-se o 3D, não a AR.
 
+### Testar no telemóvel
+
+A câmara — e portanto o "Ver na minha mesa" — só é autorizada pelo browser em
+`https://` ou em `localhost`. Abrir `http://192.168.1.x:3000` no telemóvel
+mostra o menu, mas a realidade aumentada fica morta. Três saídas:
+
+1. **Pôr online na Vercel** e usar o endereço `https://…vercel.app`. É o que
+   serve também para mostrar a restaurantes.
+2. **Túnel temporário** a partir do computador onde a app corre:
+   `cloudflared tunnel --url http://localhost:3000`, que devolve um `https://`
+   que morre quando se fecha.
+3. **Só para testes, em Android**: `chrome://flags/#unsafely-treat-insecure-origin-as-secure`,
+   acrescentar lá `http://192.168.1.x:3000`. Não serve para clientes.
+
 ## Revisão de segurança
 
 O que foi testado contra ataque real, e não só lido:
@@ -99,6 +122,11 @@ O que foi testado contra ataque real, e não só lido:
 | Limites de tamanho na base (largura 2–150 cm, nomes até 120) | inserções inválidas recusadas |
 | Segredos fora do código do browser | `npm run check:bundle` percorre o que é servido ao cliente; validado com um teste negativo |
 | Dependências vulneráveis | `npm audit --omit=dev --audit-level=high` no CI |
+| Painel e estado do modelo sem sessão | `npm run test:e2e` bate ao servidor a sério: redirecionamento para `/entrar` e 401 |
+| Dados inválidos na rota pública das visitas | tipo inventado, id que não é uuid, `mesa` com HTML e campo a mais — todos 400 |
+| Inundação de pedidos | mil visitas seguidas acabam em 429 |
+| Travessia de caminhos no gerador de QR | `../` não escapa e o PNG não leva texto do sistema |
+| Cabeçalhos e CSP | 11 verificações, incluindo CSP sem domínios externos e sem `unsafe-eval` em produção |
 
 O que **não** está verificado: teste de penetração por terceiros, testes de ponta
 a ponta com contas reais, e comportamento sob carga.
@@ -111,6 +139,7 @@ npm run typecheck  # TypeScript em modo estrito
 npm run test       # Vitest
 npm run build      # build de produção
 npm run check:bundle  # nenhum segredo no código enviado ao browser
+npm run test:e2e   # 25 ataques contra o servidor de produção a correr
 
 # políticas de segurança contra um PostgreSQL a sério
 createdb vitrine_test
@@ -122,7 +151,7 @@ Os testes cobrem a parte que não pode falhar em silêncio: a escala do modelo
 de entrada e o cálculo das janelas de limite.
 
 O `tests/integration/rls.sql` vai mais longe: cria a base, dois donos e um
-visitante anónimo, e prova em 9 verificações que um dono não lê, altera nem
+visitante anónimo, e prova em 19 verificações que um dono não lê, altera nem
 apaga os pratos do outro, que o público só vê o que está publicado, que
 ninguém carrega fotos para a pasta de outro restaurante, e que as funções
 `SECURITY DEFINER` não estão abertas ao público. É a única forma de provar políticas de
