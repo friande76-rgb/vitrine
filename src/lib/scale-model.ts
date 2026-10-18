@@ -1,5 +1,6 @@
 import "server-only";
 import { NodeIO, getBounds } from "@gltf-transform/core";
+import { ALL_EXTENSIONS } from "@gltf-transform/extensions";
 import { dedup, prune } from "@gltf-transform/functions";
 
 /**
@@ -9,7 +10,11 @@ import { dedup, prune } from "@gltf-transform/functions";
  * O glTF usa metros, por isso 20 cm = 0.2.
  */
 export async function scaleGlbToWidth(input: Uint8Array, widthCm: number): Promise<Uint8Array> {
-  const io = new NodeIO();
+  // Sem registar as extensões, qualquer modelo que use uma delas é recusado
+  // logo à entrada ("Missing required extension"). A Meshy devolve ficheiros
+  // com texturas comprimidas (EXT_texture_webp, KHR_texture_basisu), por isso
+  // sem isto o "Gerar 3D" falhava em modelos perfeitamente válidos.
+  const io = new NodeIO().registerExtensions(ALL_EXTENSIONS);
   const doc = await io.readBinary(input);
   const root = doc.getRoot();
   const scene = root.getDefaultScene() ?? root.listScenes()[0];
